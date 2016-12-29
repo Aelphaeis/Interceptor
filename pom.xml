@@ -4,6 +4,16 @@
 	<groupId>Interceptor</groupId>
 	<artifactId>Interceptor</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	
+	<dependencies>
+		<!-- http://mvnrepository.com/artifact/junit/junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
