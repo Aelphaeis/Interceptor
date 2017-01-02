@@ -44,7 +44,7 @@ public class InterceptorServer implements Runnable, Closeable {
 					logger.trace("Retrieving input stream");
 					InputStream inStream = client.getInputStream();
 					
-					logger.trace("Setting up input hanlder");
+					logger.trace("Setting up input handler");
 					InHandler handler = new InHandler(inStream);
 					handler.setHandler(new defaultTextHandler());
 					Thread handleThread = new Thread(handler);
