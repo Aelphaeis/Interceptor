@@ -8,8 +8,8 @@ import java.io.PrintWriter;
 import java.lang.Thread.State;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.junit.Test;
 
@@ -53,9 +53,17 @@ public class InterceptorServerTest {
 		assertEquals(State.TERMINATED, t.getState());
 	}
 	
+	/**
+	 * Connects to the server with a client socket and writes a message then
+	 * checks to see if the message the server received is the same as the message sent
+	 * 
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	@Test
 	public void clientTest() throws UnknownHostException, IOException, InterruptedException{
-		final List<String> receivedMessages = new ArrayList<String>();
+		final Queue<String> receivedMessages = new LinkedList<String>();
 		InterceptorServer server = new InterceptorServer();
 		server.setHandler(new TextHandler() {
 			@Override
@@ -63,6 +71,7 @@ public class InterceptorServerTest {
 				receivedMessages.add(msg);
 			}
 		});
+		
 		
 		Thread serverThread = new Thread(server, "Interceptor Server");
 		serverThread.start();
@@ -79,7 +88,7 @@ public class InterceptorServerTest {
 		
 		Thread.sleep(1000);
 		assertEquals(1, receivedMessages.size());
-		assertEquals(msg, receivedMessages.get(0));
+		assertEquals(msg, receivedMessages.poll());
 	}
 
 }
