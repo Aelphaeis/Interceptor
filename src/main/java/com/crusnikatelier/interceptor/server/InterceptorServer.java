@@ -76,4 +76,8 @@ public class InterceptorServer implements Runnable {
 			}
 		}
 	}
+
+	public List<Thread> getInHandlers() {
+		return inHandlers;
+	}
 }
