@@ -13,6 +13,7 @@ public class InHandler implements Runnable{
 	private static final Logger logger = LoggerFactory.getLogger(InHandler.class);
 	
 	InputStream in;
+	TextHandler handler;
 	
 	public InHandler(InputStream inStream) {
 		in = inStream;
@@ -37,8 +38,11 @@ public class InHandler implements Runnable{
 					while(bufferedReader.ready()){
 						logger.debug("BufferedReader ready, reading message");
 						String msg = bufferedReader.readLine();
-						logger.info("Message Received : " + msg);
 						
+						logger.debug("Handling Message");
+						if(handler != null){
+							handler.handle(msg);
+						}
 					}
 				} 
 				catch (IOException e) {
@@ -55,7 +59,7 @@ public class InHandler implements Runnable{
 				}
 				
 				if(inStreamReader != null){
-					inStreamReader.getClass();
+					inStreamReader.close();
 				}	
 			}
 			catch(IOException e){
@@ -64,4 +68,12 @@ public class InHandler implements Runnable{
 		}
 	}
 
+
+	public TextHandler getHandler() {
+		return handler;
+	}
+
+	public void setHandler(TextHandler handler) {
+		this.handler = handler;
+	}
 }
