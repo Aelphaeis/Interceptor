@@ -20,6 +20,7 @@ public class InterceptorServer implements Runnable {
 	List<Thread> inHandlers;
 	
 	public InterceptorServer(){
+		inHandlers = new ArrayList<Thread>();
 		try {
 			serverSocket = new ServerSocket(0);
 		} 
@@ -27,7 +28,7 @@ public class InterceptorServer implements Runnable {
 			String err = "Unable to create server socket";
 			throw new RuntimeException(err, e);
 		}
-		inHandlers = new ArrayList<Thread>();
+		
 	}
 
 	@Override
@@ -67,6 +68,10 @@ public class InterceptorServer implements Runnable {
 	}
 	
 	protected void closeSocket(){
+		for(Thread t : inHandlers){
+			t.interrupt();
+		}
+		
 		if(serverSocket != null && !serverSocket.isClosed()){
 			try {
 				serverSocket.close();
