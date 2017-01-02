@@ -2,10 +2,18 @@ package test.com.crusnikatelier.interceptor.server;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.lang.Thread.State;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Test;
 
+import com.crusnikatelier.interceptor.core.TextHandler;
 import com.crusnikatelier.interceptor.server.InterceptorServer;
 
 public class InterceptorServerTest {
@@ -13,13 +21,16 @@ public class InterceptorServerTest {
 
 	/**
 	 * Basic test to ensure constructor works as intended
+	 * @throws IOException 
 	 */
 	@Test
-	public void ctorTest() {
+	public void ctorTest() throws IOException {
 		InterceptorServer server = new InterceptorServer();
 		int port = server.getPort();
 		assertTrue(port < 65535);
 		assertTrue(port > 0);
+		server.close();
+		
 	}
 	
 	
@@ -40,6 +51,35 @@ public class InterceptorServerTest {
 		Thread.sleep(1500);
 	
 		assertEquals(State.TERMINATED, t.getState());
+	}
+	
+	@Test
+	public void clientTest() throws UnknownHostException, IOException, InterruptedException{
+		final List<String> receivedMessages = new ArrayList<String>();
+		InterceptorServer server = new InterceptorServer();
+		server.setHandler(new TextHandler() {
+			@Override
+			public void handle(String msg) {
+				receivedMessages.add(msg);
+			}
+		});
+		
+		Thread serverThread = new Thread(server, "Interceptor Server");
+		serverThread.start();
+
+		String msg = "Hello World";
+		
+		try(Socket client = new Socket("127.0.0.1", server.getPort())){ 
+			OutputStream outStream = client.getOutputStream();
+			PrintWriter writer = new PrintWriter(outStream);
+			
+			writer.println(msg);
+			writer.flush();
+		}
+		
+		Thread.sleep(1000);
+		assertEquals(1, receivedMessages.size());
+		assertEquals(msg, receivedMessages.get(0));
 	}
 
 }

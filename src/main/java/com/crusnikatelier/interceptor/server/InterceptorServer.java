@@ -1,5 +1,6 @@
 package com.crusnikatelier.interceptor.server;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
@@ -12,12 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.crusnikatelier.interceptor.core.InHandler;
+import com.crusnikatelier.interceptor.core.TextHandler;
 
-public class InterceptorServer implements Runnable {
+public class InterceptorServer implements Runnable, Closeable {
 	
 	private static final Logger logger = LoggerFactory.getLogger(InterceptorServer.class);
 	ServerSocket serverSocket;
 	List<Thread> inHandlers;
+	TextHandler textHandle;
 	
 	public InterceptorServer(){
 		inHandlers = new ArrayList<Thread>();
@@ -35,9 +38,10 @@ public class InterceptorServer implements Runnable {
 	public void run() {
 		try {
 			serverSocket.setSoTimeout(500);
+			
+			logger.trace("Waiting to accept client socket");
 			while (!Thread.interrupted()){
 				try{
-					logger.trace("Waiting to accept client socket");
 					Socket client  = serverSocket.accept();
 					
 					logger.trace("Retrieving input stream");
@@ -45,7 +49,8 @@ public class InterceptorServer implements Runnable {
 					
 					logger.trace("Setting up input hanlder");
 					InHandler handler = new InHandler(inStream);
-					Thread  handleThread = new Thread(handler);
+					handler.setHandler(new defaultTextHandler());
+					Thread handleThread = new Thread(handler);
 					inHandlers.add(handleThread);
 					handleThread.start();
 				}
@@ -54,35 +59,56 @@ public class InterceptorServer implements Runnable {
 					continue;
 				}
 			}
+			logger.trace("No longer waiting for client sockets");
 		}
 		catch (IOException e) {
 			logger.error("Unable to handle client inputStream", e);
 		}
 		finally{
-			closeSocket();
+			try {
+				close();
+			} 
+			catch (IOException e) {
+				String msg = "Unable to close socket";
+				logger.error(msg, e);
+				throw new RuntimeException(e);
+			}
 		}
 	}
 	
-	public int getPort(){
-		return serverSocket.getLocalPort();
-	}
-	
-	protected void closeSocket(){
+	@Override
+	public void close() throws IOException {
 		for(Thread t : inHandlers){
 			t.interrupt();
 		}
 		
 		if(serverSocket != null && !serverSocket.isClosed()){
-			try {
-				serverSocket.close();
-			}
-			catch (IOException e) {
-				logger.error("Unable to close server socket", e);
+			serverSocket.close();
+		}
+	}
+	
+	
+	public int getPort(){
+		return serverSocket.getLocalPort();
+	}
+	
+	public TextHandler getHandler() {
+		return textHandle;
+	}
+
+	public void setHandler(TextHandler textHandle) {
+		this.textHandle = textHandle;
+	}
+	
+	private class defaultTextHandler implements TextHandler{
+		@Override
+		public void handle(String msg) {
+			TextHandler serverTextHandler = getHandler();
+			if(serverTextHandler != null){
+				serverTextHandler.handle(msg);
 			}
 		}
 	}
 
-	public List<Thread> getInHandlers() {
-		return inHandlers;
-	}
+
 }
