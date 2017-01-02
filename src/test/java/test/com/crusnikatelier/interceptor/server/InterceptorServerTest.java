@@ -13,8 +13,8 @@ import java.util.Queue;
 
 import org.junit.Test;
 
-import com.crusnikatelier.interceptor.core.TextHandler;
 import com.crusnikatelier.interceptor.server.InterceptorServer;
+import com.crusnikatelier.interceptor.server.TextHandler;
 
 public class InterceptorServerTest {
 
@@ -30,7 +30,6 @@ public class InterceptorServerTest {
 		assertTrue(port < 65535);
 		assertTrue(port > 0);
 		server.close();
-		
 	}
 	
 	
