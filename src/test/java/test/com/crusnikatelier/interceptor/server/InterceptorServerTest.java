@@ -8,17 +8,13 @@ import java.io.PrintWriter;
 import java.lang.Thread.State;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.LinkedList;
-import java.util.Queue;
 
 import org.junit.Test;
 
 import com.crusnikatelier.interceptor.server.InterceptorServer;
-import com.crusnikatelier.interceptor.server.TextHandler;
 
 public class InterceptorServerTest {
-
-
+	
 	/**
 	 * Basic test to ensure constructor works as intended
 	 * @throws IOException 
@@ -53,41 +49,30 @@ public class InterceptorServerTest {
 	}
 	
 	/**
-	 * Connects to the server with a client socket and writes a message then
-	 * checks to see if the message the server received is the same as the message sent
-	 * 
+	 * Connects to the server with a client socket 
 	 * @throws UnknownHostException
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
 	@Test
 	public void clientTest() throws UnknownHostException, IOException, InterruptedException{
-		final Queue<String> receivedMessages = new LinkedList<String>();
 		InterceptorServer server = new InterceptorServer();
-		server.setHandler(new TextHandler() {
-			@Override
-			public void handle(String msg) {
-				receivedMessages.add(msg);
-			}
-		});
-		
-		
 		Thread serverThread = new Thread(server, "Interceptor Server");
 		serverThread.start();
 
 		String msg = "Hello World";
 		
 		try(Socket client = new Socket("127.0.0.1", server.getPort())){ 
+			Thread.sleep(500);
 			OutputStream outStream = client.getOutputStream();
 			PrintWriter writer = new PrintWriter(outStream);
+			
+			//we need to ensure 1 is connected.	
+			assertEquals(1, server.getConnectedClientPorts().size());
 			
 			writer.println(msg);
 			writer.flush();
 		}
-		
-		Thread.sleep(1000);
-		assertEquals(1, receivedMessages.size());
-		assertEquals(msg, receivedMessages.poll());
+		serverThread.interrupt();
 	}
-
 }
